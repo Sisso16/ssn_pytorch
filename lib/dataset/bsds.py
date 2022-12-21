@@ -4,6 +4,7 @@ import numpy as np
 import scipy.io
 from skimage.color import rgb2lab
 import matplotlib.pyplot as plt
+import cv2
 
 
 def convert_label(label):

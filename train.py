@@ -117,7 +117,6 @@ def train(cfg):
             metric = update_param(data, model, optimizer, cfg.compactness, cfg.color_scale, cfg.pos_scale,  device)
             meter.add(metric)
             state = meter.state(f"[{iterations}/{cfg.train_iter}]")
-            print(state)
             if (iterations % cfg.test_interval) == 0:
                 asa = eval(model, test_loader, cfg.color_scale, cfg.pos_scale,  device)
                 print(f"validation asa {asa}")

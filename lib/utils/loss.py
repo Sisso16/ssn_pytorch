@@ -1,6 +1,6 @@
 import torch
 from .sparse_utils import naive_sparse_bmm, sparse_permute
-
+import numpy as np
 
 def sparse_reconstruction(assignment, labels, hard_assignment=None):
     """

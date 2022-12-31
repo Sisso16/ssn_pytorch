@@ -45,7 +45,7 @@ class SSNModel(nn.Module):
         
 
     def forward(self, x):
-        pixel_f = self.feature_extract(x)
+        pixel_f = x
 
         if self.training:
             return ssn_iter(pixel_f, self.nspix, self.n_iter)

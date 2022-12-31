@@ -64,6 +64,7 @@ def update_param(data, model, optimizer, compactness, color_scale, pos_scale, de
     inputs, labels = data
 
     inputs = inputs.to(device)
+    inputs.requires_grad_(requires_grad=True)
     labels = labels.to(device)
 
     height, width = inputs.shape[-2:]
@@ -101,10 +102,10 @@ def train(cfg):
     optimizer = optim.Adam(model.parameters(), cfg.lr)
 
     augment = augmentation.Compose([augmentation.RandomHorizontalFlip(), augmentation.RandomScale(), augmentation.RandomCrop()])
-    train_dataset = bsds.BSDS(cfg.root, geo_transforms=augment)
+    train_dataset = bsds.BSDS(cfg.root, cfg.features, geo_transforms=augment)
     train_loader = DataLoader(train_dataset, cfg.batchsize, shuffle=True, drop_last=True, num_workers=cfg.nworkers)
 
-    test_dataset = bsds.BSDS(cfg.root, split="val")
+    test_dataset = bsds.BSDS(cfg.root, cfg.features, split="val")
     test_loader = DataLoader(test_dataset, 1, shuffle=False, drop_last=False)
 
     meter = Meter()
@@ -135,6 +136,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--root", type=str, help="/path/to/BSR")
+    parser.add_argument("--features", default="dino")
     parser.add_argument("--out_dir", default="./log", type=str, help="/path/to/output directory")
     parser.add_argument("--batchsize", default=6, type=int)
     parser.add_argument("--nworkers", default=4, type=int, help="number of threads for CPU parallel")

@@ -11,11 +11,8 @@ for file in os.listdir(image_dir):
     # Load the image
     image = cv2.imread(os.path.join(image_dir, file))
     # Check if the image needs to be rotated
-    print(image.shape)
     if image.shape[0] > image.shape[1]:
       # Rotate the image by 90 degrees
       image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
       # Save the rotated image
       cv2.imwrite(os.path.join(image_dir, file), image)
-    
-print("HERE")

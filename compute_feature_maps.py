@@ -15,6 +15,7 @@ from autolabel.utils import Scene
 from sklearn import decomposition
 from tqdm import tqdm
 from PIL import Image
+import tinycudann as tcnn
 
 class Autoencoder(nn.Module):
 
@@ -85,25 +86,23 @@ def extract_features(extractor, output_file, flags):
     root = "/home/asl-student/Desktop/Smazzucco/ssn-pytorch/BSR/BSDS500/data/images/train"
 
     paths = os.listdir(root)
+    paths.remove('Thumbs.db')
     paths = [os.path.join(root, path) for path in paths]
     extracted = []
+    len_paths = len(paths)
+    
     with torch.inference_mode():
         batch_size = 2
-        for i, path in enumerate(paths):
-            batch = paths[i * batch_size:(i + 1) * batch_size]
-            image = []
-            for img in batch:
-                current = read_image(img)
-                if current[1] > current[2]:
-                    image.append(current)
-                else:
-                    
-            image = torch.stack([read_image(p) for p in batch]).cuda()
-            print(image[0].shape)
-            image = F.interpolate(image, [720, 960])
-            features = extractor(image / 255.)
+        for i in tqdm(range(int(len_paths/batch_size))):
+            if i == 100:
+                break
+            else:
+                batch = paths[i * batch_size:(i + 1) * batch_size]
+                image = torch.stack([read_image(p) for p in batch]).cuda()
+                image = F.interpolate(image, [720, 960])
+                features = extractor(image / 255.)
 
-            extracted += [f for f in features]
+                extracted += [f for f in features]
     extracted = np.stack(extracted)
 
     if flags.autoencode:
@@ -112,7 +111,7 @@ def extract_features(extractor, output_file, flags):
         features = extracted[:, :, :, :flags.dim]
 
     dataset = output_file.create_dataset(
-        flags.features, (len(paths), *extractor.shape, flags.dim),
+        'dino', (len(features), *extractor.shape, flags.dim),
         dtype=np.float16,
         compression='lzf')
     dataset[:] = features
@@ -131,6 +130,20 @@ def extract_features(extractor, output_file, flags):
     dataset.attrs['min'] = minimum
     dataset.attrs['range'] = diff
 
+def visualize_features(features):
+    pca = pickle.loads(features.attrs['pca'].tobytes())
+    N, H, W, C = features[:].shape
+
+    from matplotlib import pyplot
+    feature_maps = features[:]
+    for i, fm in enumerate(feature_maps[::10]):
+        mapped = pca.transform(fm.reshape(H * W, C)).reshape(H, W, 3)
+        normalized = np.clip(
+            (mapped - features.attrs['min']) / features.attrs['range'], 0, 1)
+        pyplot.imsave(
+            f"/home/asl-student/Desktop/Smazzucco/ssn-pytorch/BSR/img{i}.png",
+            normalized)
+
 
 def main():
     flags = read_args()
@@ -143,6 +156,8 @@ def main():
     extractor = Dino()
 
     extract_features(extractor, group, flags)
+
+    #visualize_features(group['dino'])
 
 
 if __name__ == "__main__":

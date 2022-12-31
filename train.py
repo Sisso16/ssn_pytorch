@@ -1,3 +1,4 @@
+
 import os, math
 import numpy as np
 import time
@@ -17,7 +18,6 @@ def eval(model, loader, color_scale, pos_scale, device):
         """
         Function to calculate Achievable Segmentation Accuracy:
             ASA(S,G) = sum_j max_i |s_j \cap g_i| / sum_i |g_i|
-
         Args:
             input: superpixel image (H, W),
             output: ground-truth (H, W)
@@ -117,6 +117,7 @@ def train(cfg):
             metric = update_param(data, model, optimizer, cfg.compactness, cfg.color_scale, cfg.pos_scale,  device)
             meter.add(metric)
             state = meter.state(f"[{iterations}/{cfg.train_iter}]")
+            print(state)
             if (iterations % cfg.test_interval) == 0:
                 asa = eval(model, test_loader, cfg.color_scale, cfg.pos_scale,  device)
                 print(f"validation asa {asa}")
